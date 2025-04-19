@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OrderDetails from './OrderDetails';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useCart } from '../../hooks/useCart';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 const OrderStatus = () => {
   const [orderId, setOrderId] = useState('');
@@ -10,14 +12,22 @@ const OrderStatus = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const orderIdFromUrl = queryParams.get('orderId');
+  
+  // Get recent orders and last order ID from cart context
+  const { recentOrders, getLastOrderId } = useCart();
+  const lastOrderId = getLastOrderId();
 
   // If orderId is in the URL, use it for tracking
-  useState(() => {
+  useEffect(() => {
     if (orderIdFromUrl) {
       setOrderId(orderIdFromUrl);
       setTrackingStarted(true);
+    } else if (lastOrderId) {
+      // If no order ID in URL but we have a last order ID in localStorage, use that
+      setOrderId(lastOrderId);
+      setTrackingStarted(true);
     }
-  }, [orderIdFromUrl]);
+  }, [orderIdFromUrl, lastOrderId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,6 +43,12 @@ const OrderStatus = () => {
     
     // Update URL with order ID for bookmarking
     navigate(`/order-status?orderId=${orderId}`, { replace: true });
+  };
+
+  const selectRecentOrder = (id) => {
+    setOrderId(id);
+    setTrackingStarted(true);
+    navigate(`/order-status?orderId=${id}`, { replace: true });
   };
 
   return (
@@ -69,6 +85,39 @@ const OrderStatus = () => {
               )}
             </div>
           </form>
+          
+          {/* Display recent orders if available */}
+          {recentOrders && recentOrders.length > 0 && (
+            <div className="mb-6 border-t pt-4">
+              <h3 className="text-md font-medium text-gray-900 mb-3">Your Recent Orders</h3>
+              <div className="space-y-2">
+                {recentOrders.map((order) => (
+                  <div 
+                    key={order.id} 
+                    className={`p-3 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
+                      order.id === orderId ? 'border-primary bg-primary-50' : 'border-gray-200'
+                    }`}
+                    onClick={() => selectRecentOrder(order.id)}
+                  >
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="font-medium">Order #{order.id}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(order.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-primary">{formatCurrency(order.total)}</p>
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100">
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {trackingStarted && (
             <div className="mt-6">

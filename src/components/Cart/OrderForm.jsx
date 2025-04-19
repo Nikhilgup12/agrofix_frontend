@@ -67,7 +67,7 @@ const OrderForm = () => {
       });
       
       if (result && result.id) {
-        navigate(`/order-status?id=${result.id}`);
+        navigate(`/order-confirmation?orderId=${result.id}`);
       }
     } catch (err) {
       console.error('Order placement error:', err);

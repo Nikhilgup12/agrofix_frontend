@@ -16,9 +16,20 @@ export const CartProvider = ({ children }) => {
     success: false,
   });
 
+  // Store recent orders in state
+  const [recentOrders, setRecentOrders] = useState(() => {
+    const savedOrders = localStorage.getItem('recentOrders');
+    return savedOrders ? JSON.parse(savedOrders) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
+
+  // Save recent orders to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('recentOrders', JSON.stringify(recentOrders));
+  }, [recentOrders]);
 
   const addToCart = (product) => {
     setCartItems(prevItems => {
@@ -66,6 +77,22 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
+  // Add a new order to recent orders
+  const addToRecentOrders = (orderData) => {
+    const newOrder = {
+      id: orderData.id,
+      date: new Date().toISOString(),
+      total: getTotalPrice(),
+      status: orderData.status || 'Pending'
+    };
+
+    setRecentOrders(prev => {
+      // Keep only the 5 most recent orders
+      const updatedOrders = [newOrder, ...prev].slice(0, 5);
+      return updatedOrders;
+    });
+  };
+
   const placeOrder = async (orderDetails) => {
     setOrderStatus({
       isLoading: true,
@@ -91,6 +118,12 @@ export const CartProvider = ({ children }) => {
       const data = await api.post('orders', orderData);
       console.log('Order placed successfully:', data);
 
+      // Store the order ID in localStorage for easy access
+      localStorage.setItem('lastOrderId', data.id);
+      
+      // Add to recent orders
+      addToRecentOrders(data);
+
       setOrderStatus({
         isLoading: false,
         error: null,
@@ -112,6 +145,11 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Get the last order ID
+  const getLastOrderId = () => {
+    return localStorage.getItem('lastOrderId');
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -124,6 +162,8 @@ export const CartProvider = ({ children }) => {
         getTotalPrice,
         placeOrder,
         orderStatus,
+        recentOrders,
+        getLastOrderId
       }}
     >
       {children}

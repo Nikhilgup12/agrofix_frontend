@@ -6,6 +6,7 @@ import Layout from './components/Layout/Layout';
 import HomePage from './pages/HomePage';
 import CartPage from './pages/CartPage';
 import OrderStatusPage from './pages/OrderStatusPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/Layout/ProtectedRoute';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/order-status" element={<OrderStatusPage />} />
+              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route 
                 path="/dashboard" 
