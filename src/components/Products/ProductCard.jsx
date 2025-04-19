@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../../hooks/useCart';
 import { formatCurrency } from '../../utils/formatCurrency';
 import Button from '../UI/Button';
+import { DIRECT_API_URL } from '../../utils/api';
 
 const ProductCard = ({ product }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -19,23 +20,28 @@ const ProductCard = ({ product }) => {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
 
-    // If it's a full URL, return as is
+    // If it's a full URL, ensure it uses HTTPS
     if (imageUrl.startsWith('http')) {
-      return imageUrl;
+      // Convert http to https if needed
+      return imageUrl.replace(/^http:\/\//i, 'https://');
     }
 
     // For relative paths starting with /uploads
     if (imageUrl.startsWith('/uploads')) {
-      return `http://localhost:5000${imageUrl}`;
+      // Use the backend API URL but remove the /api part
+      const baseUrl = DIRECT_API_URL.replace('/api', '');
+      return `${baseUrl}${imageUrl}`;
     }
 
     // For other relative paths without leading slash
     if (!imageUrl.startsWith('/')) {
-      return `http://localhost:5000/${imageUrl}`;
+      // Use the backend API URL but remove the /api part
+      const baseUrl = DIRECT_API_URL.replace('/api', '');
+      return `${baseUrl}/${imageUrl}`;
     }
 
-    // Default case, just return the image URL
-    return imageUrl;
+    // Default case, use a placeholder image
+    return "https://via.placeholder.com/200x150?text=No+Image";
   };
 
   const handleAddToCart = () => {
