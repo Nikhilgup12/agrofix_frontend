@@ -51,50 +51,42 @@ const ProductList = ({ onAddProduct }) => {
         headers: {
           'Authorization': token,
         },
-        useDirect: true  // Force using direct API URL to avoid routing issues
+        useDirect: true
       });
       
-      // Remove product from state
       setProducts(products.filter(p => p._id !== productToDelete._id));
       setDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (err) {
       console.error("Error deleting product:", err);
-      // More descriptive error message
       setError(`Failed to delete product: ${err.message || 'Unknown error'}. Please try again or check your API configuration.`);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Function to handle image URL correctly
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
 
-    // If it's a full URL, return as is
     if (imageUrl.startsWith('http')) {
       return imageUrl;
     }
 
-    // For relative paths starting with /uploads
     if (imageUrl.startsWith('/uploads')) {
       return `${process.env.REACT_APP_DIRECT_API_URL.replace('/api', '')}${imageUrl}`;
     }
 
-    // For other relative paths without leading slash
     if (!imageUrl.startsWith('/')) {
       return `${process.env.REACT_APP_DIRECT_API_URL.replace('/api', '')}/${imageUrl}`;
     }
 
-    // Default case, just return the image URL
     return imageUrl;
   };
 
-  // Handle image error by setting a placeholder
   const handleImageError = (e) => {
     console.error(`Failed to load image: ${e.target.src}`);
-    e.target.onerror = null; // Prevent infinite error loop
-    e.target.src = "https://via.placeholder.com/40?text=No+Image"; // Use a placeholder image
+    e.target.onerror = null;
+    e.target.src = "https://via.placeholder.com/40?text=No+Image";
   };
 
   if (isLoading) {
@@ -193,7 +185,6 @@ const ProductList = ({ onAddProduct }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
