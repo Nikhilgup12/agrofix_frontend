@@ -1,115 +1,77 @@
+/**
+ * Mock data for when API connections fail
+ * This provides fallback data to ensure the app remains functional 
+ * even when the backend is unavailable
+ */
+
 // Mock Products
 export const mockProducts = [
   {
-    _id: "product1",
-    name: "Fresh Tomatoes",
-    price: 60,
-    image_url: "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    _id: "product2",
-    name: "Spinach",
-    price: 40,
-    image_url: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    _id: "product3",
-    name: "Bell Peppers",
+    _id: 'mock1',
+    name: 'Fresh Tomatoes',
     price: 80,
-    image_url: "https://images.unsplash.com/photo-1563565375-f0d78ecaf5a9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image_url: 'https://images.unsplash.com/photo-1582284540020-8acbe03f4924?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dG9tYXRvfGVufDB8fDB8fHww'
   },
   {
-    _id: "product4",
-    name: "Carrots",
+    _id: 'mock2',
+    name: 'Organic Carrots',
     price: 50,
-    image_url: "https://images.unsplash.com/photo-1598170845056-d762772c4af8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    image_url: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y2Fycm90fGVufDB8fDB8fHww'
   },
   {
-    _id: "product5",
-    name: "Broccoli",
-    price: 70,
-    image_url: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    _id: 'mock3',
+    name: 'Green Spinach',
+    price: 40,
+    image_url: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3BpbmFjaHxlbnwwfHwwfHx8MA%3D%3D'
   },
   {
-    _id: "product6",
-    name: "Potatoes",
-    price: 30,
-    image_url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+    _id: 'mock4',
+    name: 'Cauliflower',
+    price: 75,
+    image_url: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2F1bGlmbG93ZXJ8ZW58MHx8MHx8fDA%3D'
   },
+  {
+    _id: 'mock5',
+    name: 'Bell Peppers',
+    price: 90,
+    image_url: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YmVsbCUyMHBlcHBlcnxlbnwwfHwwfHx8MA%3D%3D'
+  },
+  {
+    _id: 'mock6',
+    name: 'Fresh Cucumber',
+    price: 45,
+    image_url: 'https://images.unsplash.com/photo-1604977042946-1eecc30f269e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Y3VjdW1iZXJ8ZW58MHx8MHx8fDA%3D'
+  },
+  {
+    _id: 'mock7',
+    name: 'Green Beans',
+    price: 60,
+    image_url: 'https://images.unsplash.com/photo-1567375698818-5a3e7b1002ee?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JlZW4lMjBiZWFuc3xlbnwwfHwwfHx8MA%3D%3D'
+  },
+  {
+    _id: 'mock8',
+    name: 'Onions',
+    price: 35,
+    image_url: 'https://images.unsplash.com/photo-1620574387735-3624d75b2dbc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b25pb258ZW58MHx8MHx8fDA%3D'
+  }
 ];
 
 // Mock Orders
 export const mockOrders = [
   {
-    _id: "order1",
-    buyer_name: "Rahul Sharma",
-    buyer_contact: "9876543210",
-    delivery_address: "123 Main Street, Mumbai, Maharashtra",
-    status: "Delivered",
+    _id: 'order1',
+    buyer_name: 'Demo User',
+    buyer_contact: '9876543210',
+    delivery_address: '123 Test Street, Demo City',
+    status: 'Delivered',
     items: [
-      {
-        product: "product1",
-        name: "Fresh Tomatoes",
-        price: 60,
-        quantity: 2
-      },
-      {
-        product: "product3",
-        name: "Bell Peppers",
-        price: 80,
-        quantity: 1
-      }
-    ],
-    createdAt: "2023-04-15T10:30:00.000Z"
-  },
-  {
-    _id: "order2",
-    buyer_name: "Priya Singh",
-    buyer_contact: "8765432109",
-    delivery_address: "456 Park Avenue, Delhi, Delhi",
-    status: "Processing",
-    items: [
-      {
-        product: "product2",
-        name: "Spinach",
-        price: 40,
-        quantity: 3
-      },
-      {
-        product: "product5",
-        name: "Broccoli",
-        price: 70,
-        quantity: 2
-      },
-      {
-        product: "product6",
-        name: "Potatoes",
-        price: 30,
-        quantity: 5
-      }
-    ],
-    createdAt: "2023-04-16T14:20:00.000Z"
-  },
-  {
-    _id: "order3",
-    buyer_name: "Amit Patel",
-    buyer_contact: "7654321098",
-    delivery_address: "789 Garden Road, Bangalore, Karnataka",
-    status: "Pending",
-    items: [
-      {
-        product: "product4",
-        name: "Carrots",
-        price: 50,
-        quantity: 2
-      },
-      {
-        product: "product1",
-        name: "Fresh Tomatoes",
-        price: 60,
-        quantity: 3
-      }
-    ],
-    createdAt: "2023-04-17T09:15:00.000Z"
+      { name: 'Fresh Tomatoes', price: 80, quantity: 2 },
+      { name: 'Organic Carrots', price: 50, quantity: 1 }
+    ]
   }
-]; 
+];
+
+export default {
+  products: mockProducts,
+  orders: mockOrders
+}; 

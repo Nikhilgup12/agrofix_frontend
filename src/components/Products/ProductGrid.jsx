@@ -3,11 +3,13 @@ import ProductCard from './ProductCard';
 import Loader from '../UI/Loader';
 import Alert from '../UI/Alert';
 import api from '../../utils/api';
+import { mockProducts } from '../../utils/mockData';
 
 const ProductGrid = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [usingMockData, setUsingMockData] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -18,15 +20,20 @@ const ProductGrid = () => {
         // Ensure data is an array before setting it
         if (Array.isArray(data)) {
           setProducts(data);
+          setUsingMockData(false);
         } else {
           console.error('API did not return an array of products:', data);
-          // If data is not an array, set products as empty array
-          setProducts([]);
-          setError('Could not load products. Please try again later.');
+          // If data is not an array, try to use mock data
+          setProducts(mockProducts);
+          setUsingMockData(true);
+          setError('Using demo data. Connect to backend for real products.');
         }
       } catch (err) {
         console.error('Error fetching products:', err);
-        setError(err.message);
+        // Use mock data as fallback
+        setProducts(mockProducts);
+        setUsingMockData(true);
+        setError('Using demo data. Connect to backend for real products.');
       } finally {
         setIsLoading(false);
       }
@@ -37,10 +44,6 @@ const ProductGrid = () => {
 
   if (isLoading) {
     return <Loader className="py-20" />;
-  }
-
-  if (error) {
-    return <Alert type="error" message={error} />;
   }
 
   // Ensure products is an array before checking length
@@ -59,10 +62,24 @@ const ProductGrid = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {productsArray.map((product) => (
-        <ProductCard key={product._id || product.id} product={product} />
-      ))}
+    <div>
+      {usingMockData && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-yellow-700 text-sm">
+            <strong>Note:</strong> Showing demo data because the backend connection failed. This is normal if the server is not running.
+          </p>
+        </div>
+      )}
+      
+      {error && !usingMockData && (
+        <Alert type="error" message={error} className="mb-6" />
+      )}
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {productsArray.map((product) => (
+          <ProductCard key={product._id || product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
 };

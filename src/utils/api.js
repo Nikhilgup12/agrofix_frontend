@@ -6,6 +6,9 @@
 const API_URL = process.env.REACT_APP_API_URL || '/api';
 export const DIRECT_API_URL = process.env.REACT_APP_DIRECT_API_URL || 'https://agrofix-backend-ll61.onrender.com/api';
 
+// CORS proxy for production when direct API access fails due to CORS
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+
 // In production, always use the direct API URL to avoid routing issues
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -37,7 +40,7 @@ export const getApiUrl = (path, options = {}) => {
  * @returns {Promise} - Fetch promise
  */
 export const apiRequest = async (path, options = {}) => {
-  const url = getApiUrl(path, options);
+  let url = getApiUrl(path, options);
   
   // Set default headers if not provided
   if (!options.headers) {
@@ -48,11 +51,44 @@ export const apiRequest = async (path, options = {}) => {
   
   try {
     console.log(`Making API request to: ${url}`);
-    const response = await fetch(url, options);
+    let response;
+    let corsError = false;
+    
+    try {
+      // First try the direct request
+      response = await fetch(url, options);
+    } catch (error) {
+      // If there's a CORS error in production, try using a CORS proxy
+      if (isProduction && error.message && (
+        error.message.includes('CORS') || 
+        error.message.includes('Failed to fetch')
+      )) {
+        corsError = true;
+        console.warn('CORS error detected, retrying with CORS proxy...');
+        
+        // Use a CORS proxy for the API URL
+        const proxyUrl = `${CORS_PROXY}${url}`;
+        console.log(`Trying with CORS proxy: ${proxyUrl}`);
+        
+        // Add required headers for CORS proxy
+        const proxyOptions = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        };
+        
+        response = await fetch(proxyUrl, proxyOptions);
+      } else {
+        // If it's not a CORS error or not in production, rethrow
+        throw error;
+      }
+    }
     
     // Check if the response is HTML (which suggests a routing issue)
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
+    if (contentType && contentType.includes('text/html') && !corsError) {
       console.error('Received HTML response instead of JSON. This indicates a routing issue.');
       
       // Try again with the direct API URL if we weren't already using it
