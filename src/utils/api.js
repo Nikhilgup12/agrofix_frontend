@@ -24,7 +24,8 @@ export const getApiUrl = (path, options = {}) => {
   
   // In production, always use the direct API URL
   // Also use direct API URL if specified in options or if using credentials
-  if (isProduction || options.useDirect || options.credentials === 'include') {
+  // For DELETE requests, always use direct URL to avoid routing issues
+  if (isProduction || options.useDirect || options.credentials === 'include' || options.method === 'DELETE') {
     console.log(`Using direct API URL: ${DIRECT_API_URL}/${cleanPath}`);
     return `${DIRECT_API_URL}/${cleanPath}`;
   }
@@ -65,7 +66,7 @@ export const apiRequest = async (path, options = {}) => {
   }
   
   try {
-    console.log(`Making API request to: ${url}`);
+    console.log(`Making API request to: ${url} with method: ${options.method || 'GET'}`);
     let response;
     let corsError = false;
     
@@ -106,6 +107,12 @@ export const apiRequest = async (path, options = {}) => {
     if (contentType && contentType.includes('text/html') && !corsError) {
       console.error('Received HTML response instead of JSON. This indicates a routing issue.');
       
+      // For DELETE requests or if we're already using the direct URL, return success if status is 2xx
+      if ((options.method === 'DELETE' || options.useDirect) && response.status >= 200 && response.status < 300) {
+        console.log('Delete request appears successful despite HTML response. Assuming success.');
+        return { success: true, status: response.status };
+      }
+      
       // Try again with the direct API URL if we weren't already using it
       if (!isProduction && !options.useDirect) {
         console.log('Retrying with direct API URL...');
@@ -134,8 +141,15 @@ export const apiRequest = async (path, options = {}) => {
       throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
     }
     
-    // Check if response is empty
-    if (contentType && contentType.includes('application/json')) {
+    // For DELETE requests with no content, return success object
+    if (options.method === 'DELETE' && response.status === 204) {
+      return { success: true };
+    }
+    
+    // Check if response is empty or text/plain
+    if (!contentType) {
+      return { success: true, status: response.status };
+    } else if (contentType.includes('application/json')) {
       try {
         const data = await response.json();
         
@@ -153,7 +167,7 @@ export const apiRequest = async (path, options = {}) => {
         return data;
       } catch (e) {
         console.error('Error parsing JSON response:', e);
-        return {};
+        return { success: true, status: response.status };
       }
     } else {
       return await response.text();

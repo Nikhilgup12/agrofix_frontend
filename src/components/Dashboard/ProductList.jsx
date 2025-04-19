@@ -51,6 +51,7 @@ const ProductList = ({ onAddProduct }) => {
         headers: {
           'Authorization': token,
         },
+        useDirect: true  // Force using direct API URL to avoid routing issues
       });
       
       // Remove product from state
@@ -58,7 +59,9 @@ const ProductList = ({ onAddProduct }) => {
       setDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (err) {
-      setError(err.message);
+      console.error("Error deleting product:", err);
+      // More descriptive error message
+      setError(`Failed to delete product: ${err.message || 'Unknown error'}. Please try again or check your API configuration.`);
     } finally {
       setIsDeleting(false);
     }
