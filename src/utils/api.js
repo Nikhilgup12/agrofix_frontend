@@ -41,6 +41,7 @@ export const apiRequest = async (path, options = {}) => {
   }
   
   try {
+    console.log(`Making API request to: ${url}`);
     const response = await fetch(url, options);
     
     // Handle non-OK responses
@@ -60,12 +61,32 @@ export const apiRequest = async (path, options = {}) => {
     // Check if response is empty
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      const data = await response.json();
+      
+      // For endpoints that should return collections (like /products), ensure we have an array
+      if (path === 'products' && !Array.isArray(data)) {
+        console.warn('Products endpoint did not return an array:', data);
+        // If data has a products property that is an array, return that
+        if (data && Array.isArray(data.products)) {
+          return data.products;
+        }
+        // Otherwise return empty array to avoid errors
+        return [];
+      }
+      
+      return data;
     } else {
       return await response.text();
     }
   } catch (error) {
     console.error('API request failed:', error);
+    
+    // For specific endpoints, return safe fallbacks on error
+    if (path === 'products') {
+      console.warn('Returning empty products array due to API error');
+      return [];
+    }
+    
     throw error;
   }
 };

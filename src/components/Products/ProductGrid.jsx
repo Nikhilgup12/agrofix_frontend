@@ -14,8 +14,18 @@ const ProductGrid = () => {
       try {
         setIsLoading(true);
         const data = await api.get('products');
-        setProducts(data);
+        
+        // Ensure data is an array before setting it
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          console.error('API did not return an array of products:', data);
+          // If data is not an array, set products as empty array
+          setProducts([]);
+          setError('Could not load products. Please try again later.');
+        }
       } catch (err) {
+        console.error('Error fetching products:', err);
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -33,7 +43,10 @@ const ProductGrid = () => {
     return <Alert type="error" message={error} />;
   }
 
-  if (!products.length) {
+  // Ensure products is an array before checking length
+  const productsArray = Array.isArray(products) ? products : [];
+  
+  if (!productsArray.length) {
     return (
       <div className="text-center py-10">
         <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,7 +60,7 @@ const ProductGrid = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
+      {productsArray.map((product) => (
         <ProductCard key={product._id || product.id} product={product} />
       ))}
     </div>
