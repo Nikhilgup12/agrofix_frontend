@@ -4,7 +4,10 @@
 
 // Determine the API base URLs from environment variables
 const API_URL = process.env.REACT_APP_API_URL || '/api';
-const DIRECT_API_URL = process.env.REACT_APP_DIRECT_API_URL || 'https://agrofix-backend-ll61.onrender.com/api';
+export const DIRECT_API_URL = process.env.REACT_APP_DIRECT_API_URL || 'https://agrofix-backend-ll61.onrender.com/api';
+
+// In production, always use the direct API URL to avoid routing issues
+const isProduction = process.env.NODE_ENV === 'production';
 
 /**
  * Get the appropriate API URL based on path and options
@@ -16,11 +19,14 @@ export const getApiUrl = (path, options = {}) => {
   // Remove leading slash if present
   const cleanPath = path.startsWith('/') ? path.substring(1) : path;
   
-  // Use direct API URL if specified in options or if using credentials
-  if (options.useDirect || options.credentials === 'include') {
+  // In production, always use the direct API URL
+  // Also use direct API URL if specified in options or if using credentials
+  if (isProduction || options.useDirect || options.credentials === 'include') {
+    console.log(`Using direct API URL: ${DIRECT_API_URL}/${cleanPath}`);
     return `${DIRECT_API_URL}/${cleanPath}`;
   }
   
+  console.log(`Using proxy API URL: ${API_URL}/${cleanPath}`);
   return `${API_URL}/${cleanPath}`;
 };
 
@@ -44,6 +50,20 @@ export const apiRequest = async (path, options = {}) => {
     console.log(`Making API request to: ${url}`);
     const response = await fetch(url, options);
     
+    // Check if the response is HTML (which suggests a routing issue)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      console.error('Received HTML response instead of JSON. This indicates a routing issue.');
+      
+      // Try again with the direct API URL if we weren't already using it
+      if (!isProduction && !options.useDirect) {
+        console.log('Retrying with direct API URL...');
+        return apiRequest(path, { ...options, useDirect: true });
+      }
+      
+      throw new Error('API returned HTML instead of JSON. Please check API configuration.');
+    }
+    
     // Handle non-OK responses
     if (!response.ok) {
       let errorData;
@@ -59,7 +79,6 @@ export const apiRequest = async (path, options = {}) => {
     }
     
     // Check if response is empty
-    const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
       
