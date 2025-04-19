@@ -34,6 +34,15 @@ export const getApiUrl = (path, options = {}) => {
 };
 
 /**
+ * Check if an object is FormData
+ * @param {any} obj - The object to check
+ * @returns {boolean} - Whether the object is FormData
+ */
+const isFormData = (obj) => {
+  return obj && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'FormData';
+};
+
+/**
  * Make an API request with standardized options
  * @param {string} path - API endpoint path
  * @param {Object} options - Fetch options
@@ -47,6 +56,12 @@ export const apiRequest = async (path, options = {}) => {
     options.headers = {
       'Content-Type': 'application/json',
     };
+  }
+  
+  // Handle FormData correctly by not setting Content-Type header
+  // (browser will set it automatically with boundary)
+  if (isFormData(options.body)) {
+    delete options.headers['Content-Type'];
   }
   
   try {
@@ -108,7 +123,12 @@ export const apiRequest = async (path, options = {}) => {
         errorData = await response.json();
       } catch (e) {
         // If response is not JSON, use text
-        errorData = { message: await response.text() };
+        try {
+          errorData = { message: await response.text() };
+        } catch (textError) {
+          // If we can't even get text, use status
+          errorData = { message: `Server returned status ${response.status}` };
+        }
       }
       
       throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
@@ -116,20 +136,25 @@ export const apiRequest = async (path, options = {}) => {
     
     // Check if response is empty
     if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-      
-      // For endpoints that should return collections (like /products), ensure we have an array
-      if (path === 'products' && !Array.isArray(data)) {
-        console.warn('Products endpoint did not return an array:', data);
-        // If data has a products property that is an array, return that
-        if (data && Array.isArray(data.products)) {
-          return data.products;
+      try {
+        const data = await response.json();
+        
+        // For endpoints that should return collections (like /products), ensure we have an array
+        if (path === 'products' && !Array.isArray(data)) {
+          console.warn('Products endpoint did not return an array:', data);
+          // If data has a products property that is an array, return that
+          if (data && Array.isArray(data.products)) {
+            return data.products;
+          }
+          // Otherwise return empty array to avoid errors
+          return [];
         }
-        // Otherwise return empty array to avoid errors
-        return [];
+        
+        return data;
+      } catch (e) {
+        console.error('Error parsing JSON response:', e);
+        return {};
       }
-      
-      return data;
     } else {
       return await response.text();
     }
@@ -152,11 +177,22 @@ export const apiRequest = async (path, options = {}) => {
 export const api = {
   get: (path, options = {}) => apiRequest(path, { ...options, method: 'GET' }),
   
-  post: (path, data, options = {}) => apiRequest(path, {
-    ...options,
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+  post: (path, data, options = {}) => {
+    // Handle FormData correctly
+    if (isFormData(data)) {
+      return apiRequest(path, {
+        ...options,
+        method: 'POST',
+        body: data
+      });
+    }
+    
+    return apiRequest(path, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   
   put: (path, data, options = {}) => apiRequest(path, {
     ...options,

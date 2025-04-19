@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../UI/Button';
 import Alert from '../UI/Alert';
 import api from '../../utils/api';
+import { DIRECT_API_URL } from '../../utils/api';
 
 const AddProductForm = ({ onSuccess, onCancel }) => {
   const { token } = useAuth();
@@ -86,16 +87,43 @@ const AddProductForm = ({ onSuccess, onCancel }) => {
         productData.append('image', formData.image);
       }
       
-      const data = await api.post('products', productData, {
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'multipart/form-data'
-        }
+      console.log('Submitting product with FormData', {
+        name: formData.name,
+        price: formData.price,
+        hasImage: !!formData.image
       });
+      
+      // Use direct fetch instead of api utility for FormData
+      const directUrl = `${DIRECT_API_URL}/products`;
+      console.log('Using direct URL for file upload:', directUrl);
+      
+      const response = await fetch(directUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': token
+          // Don't set Content-Type for FormData
+        },
+        body: productData
+      });
+      
+      if (!response.ok) {
+        let errorText;
+        try {
+          const errorData = await response.json();
+          errorText = errorData.message || `Server returned ${response.status}`;
+        } catch (e) {
+          errorText = `Server returned ${response.status}`;
+        }
+        throw new Error(errorText);
+      }
+      
+      const data = await response.json();
+      console.log('Product added successfully:', data);
       
       onSuccess(data);
     } catch (err) {
-      setSubmitError(err.message);
+      console.error('Failed to add product:', err);
+      setSubmitError(err.message || 'Failed to add product. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +142,7 @@ const AddProductForm = ({ onSuccess, onCancel }) => {
         />
       )}
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">

@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import api from '../utils/api';
 
 export const CartContext = createContext();
 
@@ -86,19 +87,9 @@ export const CartProvider = ({ children }) => {
         items
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to place order');
-      }
+      console.log('Placing order with data:', orderData);
+      const data = await api.post('orders', orderData);
+      console.log('Order placed successfully:', data);
 
       setOrderStatus({
         isLoading: false,
@@ -110,6 +101,7 @@ export const CartProvider = ({ children }) => {
       clearCart();
       return data;
     } catch (err) {
+      console.error('Order placement failed:', err);
       setOrderStatus({
         isLoading: false,
         error: err.message || 'An error occurred while placing your order',

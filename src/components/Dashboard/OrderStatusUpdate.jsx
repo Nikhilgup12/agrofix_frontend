@@ -41,13 +41,24 @@ const OrderStatusUpdate = ({ order, onClose, onUpdate }) => {
       setIsSubmitting(true);
       setError(null);
       
+      // Ensure we have a valid status
+      if (!status) {
+        setError("Status is required");
+        return;
+      }
+      
       setDebugInfo(`Sending PUT request for order ${order._id} with status: ${status}`);
       console.log(`Updating order ${order._id} status to ${status}`);
       
+      // Explicitly create the request body to ensure status is included
+      const requestBody = { status: status };
+      console.log('Request body:', requestBody);
+      
       // Use the direct API URL to avoid proxy issues
-      const response = await api.put(`orders/${order._id}`, { status }, {
+      const response = await api.put(`orders/${order._id}`, requestBody, {
         headers: {
           'Authorization': token,
+          'Content-Type': 'application/json'
         },
         useDirect: true // This ensures we use the direct API URL
       });
@@ -70,13 +81,24 @@ const OrderStatusUpdate = ({ order, onClose, onUpdate }) => {
     try {
       setIsSubmitting(true);
       setError(null);
-      setDebugInfo("Trying alternative endpoint (PATCH) for status update...");
       
+      // Ensure we have a valid status
+      if (!status) {
+        setError("Status is required");
+        return;
+      }
+      
+      setDebugInfo("Trying alternative endpoint (PATCH) for status update...");
       console.log(`Updating via PATCH endpoint for order ${order._id}`);
       
-      const response = await api.patch(`orders/${order._id}/status`, { status }, {
+      // Explicitly create the request body to ensure status is included
+      const requestBody = { status: status };
+      console.log('Request body for PATCH:', requestBody);
+      
+      const response = await api.patch(`orders/${order._id}/status`, requestBody, {
         headers: {
           'Authorization': token,
+          'Content-Type': 'application/json'
         },
         useDirect: true // This ensures we use the direct API URL
       });
@@ -127,6 +149,7 @@ const OrderStatusUpdate = ({ order, onClose, onUpdate }) => {
             </label>
             <select
               id="status"
+              name="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
